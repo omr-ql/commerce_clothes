@@ -4,15 +4,16 @@ import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiSearch, FiUser, FiHeart, FiShoppingBag, FiMenu, FiX } from 'react-icons/fi';
 import { CartContext } from '../context/CartContext';
+import ShoppingCartIcon from './ShoppingCartIcon';
 
 const Header = () => {
   const location = useLocation();
   const { cart } = useContext(CartContext);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [isMobileSearch, setIsMobileSearch] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   // Calculate total items in cart
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   
@@ -36,7 +37,7 @@ const Header = () => {
   // Close mobile menu when changing routes
   useEffect(() => {
     setMobileMenuOpen(false);
-    setSearchOpen(false);
+    setIsMobileSearch(false);
   }, [location]);
   
   const handleSearchSubmit = (e) => {
@@ -49,7 +50,12 @@ const Header = () => {
   
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
-    if (searchOpen) setSearchOpen(false);
+    if (isMobileSearch) setIsMobileSearch(false);
+  };
+  
+  const toggleMobileSearch = () => {
+    setIsMobileSearch(!isMobileSearch);
+    if (mobileMenuOpen) setMobileMenuOpen(false);
   };
   
   const toggleSearch = () => {
@@ -95,10 +101,27 @@ const Header = () => {
           </NavList>
         </NavContainer>
         
+        {/* Desktop Search Bar */}
+        <SearchBarContainer>
+          <InlineSearchForm onSubmit={handleSearchSubmit}>
+            <InlineSearchInput 
+              type="text" 
+              placeholder="Search for products..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search"
+            />
+            <InlineSearchButton type="submit">
+              <FiSearch size={18} />
+            </InlineSearchButton>
+          </InlineSearchForm>
+        </SearchBarContainer>
+        
         <ActionContainer>
-          <ActionButton onClick={toggleSearch}>
+          {/* Mobile Search Toggle */}
+          <MobileSearchButton onClick={toggleSearch}>
             <FiSearch size={20} />
-          </ActionButton>
+          </MobileSearchButton>
           
           <ActionButton as={Link} to="/profile">
             <FiUser size={20} />
@@ -108,10 +131,9 @@ const Header = () => {
             <FiHeart size={20} />
           </ActionButton>
           
-          <CartButton as={Link} to="/cart">
-            <FiShoppingBag size={20} />
-            {cartItemCount > 0 && <CartCount>{cartItemCount}</CartCount>}
-          </CartButton>
+          <ActionButton as={Link} to="/cart">
+            <ShoppingCartIcon size={20} />
+          </ActionButton>
           
           <MobileMenuButton onClick={toggleMobileMenu}>
             <FiMenu size={24} />
@@ -119,6 +141,7 @@ const Header = () => {
         </ActionContainer>
       </HeaderContent>
       
+      {/* Mobile Search Bar */}
       <SearchContainer isOpen={searchOpen}>
         <SearchForm onSubmit={handleSearchSubmit}>
           <SearchInput 
@@ -322,6 +345,7 @@ const MobileMenuButton = styled.button`
   }
 `;
 
+// Updated search components
 const SearchContainer = styled.div`
   max-height: ${props => props.isOpen ? '60px' : '0'};
   overflow: hidden;
@@ -362,6 +386,79 @@ const SearchButton = styled.button`
   &:hover {
     background-color: #333;
   }
+`;
+
+// New components for integrated search
+const SearchBarContainer = styled.div`
+  flex: 1;
+  max-width: 400px;
+  margin: 0 2rem;
+  display: none;
+  
+  @media (min-width: 1024px) {
+    display: block;
+  }
+`;
+
+const MobileSearchButton = styled(ActionButton)`
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`;
+
+const MobileSearchContainer = styled.div`
+  padding: 0.75rem 1rem;
+  background-color: white;
+  border-top: 1px solid #eee;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`;
+
+const CloseSearchButton = styled.button`
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const InlineSearchForm = styled.form`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+`;
+
+const InlineSearchInput = styled.input`
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #000;
+  }
+`;
+
+const InlineSearchButton = styled.button`
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Overlay = styled.div`
